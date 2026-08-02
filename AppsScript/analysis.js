@@ -6,16 +6,9 @@
  * writes the analysis into the spreadsheet, and marks the row Complete.
  */
 
-var INVENTORY_SPREADSHEET_ID =
-  "1KCxbVMjtumF9SwA88nM0SEtZjeseptVsA0NfTVt2lTM";
-
-var INVENTORY_SHEET_NAME = "Image Inventory";
-
-var OPENAI_MODEL = "gpt-5";
-
-// Start with a small batch to stay within Apps Script execution limits.
-var ANALYSIS_BATCH_SIZE = 5;
-
+/**
+ * Configuration is defined once in Config.js.
+ */
 
 /**
  * Processes the next batch of rows marked Pending Analysis.
@@ -63,7 +56,7 @@ function analyzePendingImages() {
         continue;
       }
 
-      if (processedCount >= ANALYSIS_BATCH_SIZE) {
+      if (processedCount >= SB_CONFIG.ANALYSIS_BATCH_SIZE) {
         pendingRowsRemain = true;
         break;
       }
@@ -280,7 +273,7 @@ function callOpenAIImageAnalysis_(
   ].join("\n");
 
   var payload = {
-    model: OPENAI_MODEL,
+    model: SB_CONFIG.OPENAI_MODEL,
     input: [
       {
         role: "user",
@@ -660,18 +653,18 @@ function ensureAnalysisHeaders_(sheet) {
 function getInventorySheet_() {
   var spreadsheet =
     SpreadsheetApp.openById(
-      INVENTORY_SPREADSHEET_ID
+      SB_CONFIG.SPREADSHEET_ID
     );
 
   var sheet =
     spreadsheet.getSheetByName(
-      INVENTORY_SHEET_NAME
+      SB_CONFIG.INVENTORY_SHEET_NAME
     );
 
   if (!sheet) {
     throw new Error(
       'Sheet "' +
-      INVENTORY_SHEET_NAME +
+      SB_CONFIG.INVENTORY_SHEET_NAME +
       '" was not found.'
     );
   }

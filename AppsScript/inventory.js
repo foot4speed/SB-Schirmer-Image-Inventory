@@ -9,15 +9,9 @@
  * or change permissions on any original Drive files.
  */
 
-var INVENTORY_ROOT_FOLDER_ID =
-  "1ETQMtYzxlxzuIdLNi1DR_P5-QEwhH1NK";
-
-var INVENTORY_SPREADSHEET_ID =
-  "1KCxbVMjtumF9SwA88nM0SEtZjeseptVsA0NfTVt2lTM";
-
-var INVENTORY_SHEET_NAME =
-  "Image Inventory";
-
+/**
+ * Configuration is defined once in Config.js.
+ */
 
 /**
  * Main function shown in the Apps Script function menu.
@@ -53,7 +47,7 @@ function writeSupportedAssetInventory() {
 
     var rootFolder =
       DriveApp.getFolderById(
-        INVENTORY_ROOT_FOLDER_ID
+        SB_CONFIG.ROOT_FOLDER_ID
       );
 
     var newRows = [];
@@ -219,18 +213,18 @@ function scanInventoryFolder_(
 function getInventoryWriterSheet_() {
   var spreadsheet =
     SpreadsheetApp.openById(
-      INVENTORY_SPREADSHEET_ID
+      SB_CONFIG.SPREADSHEET_ID
     );
 
   var sheet =
     spreadsheet.getSheetByName(
-      INVENTORY_SHEET_NAME
+      SB_CONFIG.INVENTORY_SHEET_NAME
     );
 
   if (!sheet) {
     throw new Error(
       'Sheet "' +
-      INVENTORY_SHEET_NAME +
+      SB_CONFIG.INVENTORY_SHEET_NAME +
       '" was not found.'
     );
   }
