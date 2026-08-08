@@ -455,7 +455,7 @@ function callOpenAIImageAnalysisOnce_(
           "Lunch",
           "Dinner",
           "Snacks",
-          "Hors d’oeuvres",
+          "Hors d'oeuvres",
           "Multiple",
           "Unknown"
         ]
@@ -584,6 +584,11 @@ function callOpenAIImageAnalysisOnce_(
     );
   }
 
+  if (responseJson.status === "incomplete") {
+    var incompleteReason = responseJson.incomplete_details && responseJson.incomplete_details.reason ? responseJson.incomplete_details.reason : "unknown reason";
+    throw new Error("OpenAI response was incomplete: " + incompleteReason);
+  }
+
   var outputText =
     extractResponseOutputText_(
       responseJson
@@ -655,7 +660,7 @@ function parseAndValidateAnalysisJson_(
     );
   } catch (error) {
     throw new Error(
-      "Could not parse the image analysis JSON."
+      "Could not parse the image analysis JSON. Output preview: " + truncateText_(String(text).trim(), 300)
     );
   }
 
@@ -702,7 +707,7 @@ function parseAndValidateAnalysisJson_(
       "Lunch",
       "Dinner",
       "Snacks",
-      "Hors d’oeuvres",
+      "Hors d'oeuvres",
       "Multiple",
       "Unknown"
     ]
