@@ -540,7 +540,7 @@ function callOpenAIImageAnalysisOnce_(
         schema: analysisSchema
       }
     },
-    max_output_tokens: 1200
+    max_output_tokens: 4000
   };
 
   var response = UrlFetchApp.fetch(
