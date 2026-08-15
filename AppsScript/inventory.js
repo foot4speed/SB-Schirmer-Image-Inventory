@@ -641,3 +641,105 @@ function runInventoryAutomation() {
 
   analyzePendingImages();
 }
+
+function diagnoseInventoryCoverage() {
+  var sheet = getInventorySheet_();
+  var headerMap =
+    getInventoryWriterHeaderMap_(sheet);
+
+  validateInventoryWriterHeaders_(
+    headerMap
+  );
+
+  var existingFileIds =
+    getExistingInventoryFileIds_(
+      sheet,
+      headerMap
+    );
+
+  var rootFolder =
+    DriveApp.getFolderById(
+      SB_CONFIG.ROOT_FOLDER_ID
+    );
+
+  var counts = {
+    totalImages: 0,
+    alreadyInventoried: 0,
+    notInventoried: 0
+  };
+
+  diagnoseInventoryFolder_(
+    rootFolder,
+    rootFolder.getName(),
+    existingFileIds,
+    counts
+  );
+
+  console.log(
+    "Eligible images found in Drive: " +
+    counts.totalImages
+  );
+
+  console.log(
+    "Already inventoried: " +
+    counts.alreadyInventoried
+  );
+
+  console.log(
+    "NOT inventoried: " +
+    counts.notInventoried
+  );
+
+  return counts;
+}
+
+function diagnoseInventoryFolder_(
+  folder,
+  folderPath,
+  existingFileIds,
+  counts
+) {
+  var files = folder.getFiles();
+
+  while (files.hasNext()) {
+    var file = files.next();
+
+    var mimeType = String(
+      file.getMimeType() || ""
+    );
+
+    if (mimeType.indexOf("image/") !== 0) {
+      continue;
+    }
+
+    counts.totalImages++;
+
+    if (existingFileIds[file.getId()]) {
+      counts.alreadyInventoried++;
+    } else {
+      counts.notInventoried++;
+
+      console.log(
+        "NOT INVENTORIED: " +
+        folderPath +
+        " / " +
+        file.getName()
+      );
+    }
+  }
+
+  var subfolders = folder.getFolders();
+
+  while (subfolders.hasNext()) {
+    var subfolder = subfolders.next();
+
+    diagnoseInventoryFolder_(
+      subfolder,
+      folderPath +
+        " / " +
+        subfolder.getName(),
+      existingFileIds,
+      counts
+    );
+  }
+}
