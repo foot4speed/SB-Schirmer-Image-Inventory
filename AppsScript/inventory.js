@@ -161,7 +161,7 @@ function applyPhase1Dropdowns_(sheet) {
       "Lunch",
       "Dinner",
       "Snacks",
-      "Hors d’oeuvres",
+      "Hors d'oeuvres",
       "Multiple",
       "Unknown"
     ]
