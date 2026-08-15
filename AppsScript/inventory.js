@@ -236,7 +236,7 @@ function setDropdownValidation_(
  */
 function writeSupportedAssetInventory() {
   return writeSupportedAssetInventoryWithLimit_(
-    null
+    SB_CONFIG.MAX_IMAGES_PER_SESSION
   );
 }
 
