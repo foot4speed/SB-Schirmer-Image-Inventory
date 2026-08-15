@@ -2,7 +2,49 @@
  * SB Schirmer Image Inventory Engine
  * Phase 1: Image analysis
  */
+function recoverStaleAnalyzingRows_() {
+  var sheet = getInventorySheet_();
+  var headerMap = getPhase1HeaderMap_(sheet);
 
+  validateAnalysisHeaders_(headerMap);
+
+  var lastRow = sheet.getLastRow();
+  var recoveredCount = 0;
+
+  for (var sheetRow = 2; sheetRow <= lastRow; sheetRow++) {
+    var status = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Analysis Status"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (status !== "Analyzing") {
+      continue;
+    }
+
+    setCellByHeader_(
+      sheet,
+      sheetRow,
+      headerMap,
+      "Analysis Status",
+      "Pending Analysis"
+    );
+
+    recoveredCount++;
+  }
+
+  SpreadsheetApp.flush();
+
+  console.log(
+    "Stale analyzing rows recovered: " +
+    recoveredCount
+  );
+
+  return recoveredCount;
+}
 function analyzePendingImages() {
   return analyzePendingImagesWithOptions_(
     SB_CONFIG.ANALYSIS_BATCH_SIZE,
