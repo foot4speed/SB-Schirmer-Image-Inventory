@@ -12,7 +12,7 @@
 function scheduleNextAnalysisBatch() {
   deleteAnalysisTriggers();
 
-  ScriptApp.newTrigger("analyzePendingImages")
+  ScriptApp.newTrigger("runInventoryAutomation")
     .timeBased()
     .after(60 * 1000)
     .create();
@@ -28,7 +28,9 @@ function deleteAnalysisTriggers() {
   for (var i = 0; i < triggers.length; i++) {
     if (
       triggers[i].getHandlerFunction() ===
-      "analyzePendingImages"
+        "analyzePendingImages" ||
+      triggers[i].getHandlerFunction() ===
+        "runInventoryAutomation"
     ) {
       ScriptApp.deleteTrigger(triggers[i]);
     }
@@ -36,6 +38,9 @@ function deleteAnalysisTriggers() {
 }
 
 
+/**
+ * Diagnostic helper: lists files directly inside the configured root folder.
+ */
 /**
  * Diagnostic helper: lists files directly inside the configured root folder.
  */

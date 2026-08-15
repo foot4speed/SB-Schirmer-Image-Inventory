@@ -602,18 +602,42 @@ function runInventoryAutomation() {
     "SB Schirmer inventory automation started."
   );
 
-  writeSupportedAssetInventory();
-
-  SpreadsheetApp.flush();
-
   if (
-    typeof analyzePendingImages ===
+    typeof recoverStaleAnalyzingRows_ ===
     "function"
   ) {
-    analyzePendingImages();
-  } else {
+    recoverStaleAnalyzingRows_();
+  }
+
+  if (
+    typeof analyzePendingImages !==
+    "function"
+  ) {
     throw new Error(
       "The analyzePendingImages function was not found."
     );
   }
+
+  var sheet = getInventorySheet_();
+
+  if (hasPendingAnalysisRows_(sheet)) {
+    console.log(
+      "Existing pending analysis found. Processing it before new inventory discovery."
+    );
+
+    analyzePendingImages();
+
+    if (hasPendingAnalysisRows_(sheet)) {
+      console.log(
+        "Pending analysis still remains. New inventory discovery is deferred."
+      );
+      return;
+    }
+  }
+
+  writeSupportedAssetInventory();
+
+  SpreadsheetApp.flush();
+
+  analyzePendingImages();
 }
