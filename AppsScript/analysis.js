@@ -45,6 +45,11 @@ function recoverStaleAnalyzingRows_() {
 
   return recoveredCount;
 }
+
+function recoverStaleAnalyzingRows() {
+  return recoverStaleAnalyzingRows_();
+}
+
 function analyzePendingImages() {
   return analyzePendingImagesWithOptions_(
     SB_CONFIG.ANALYSIS_BATCH_SIZE,
