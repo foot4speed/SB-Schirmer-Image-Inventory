@@ -279,9 +279,7 @@ function writeSupportedAssetInventoryWithLimit_(
       );
 
     var rootFolder =
-      DriveApp.getFolderById(
-        SB_CONFIG.ROOT_FOLDER_ID
-      );
+      DriveApp.getRootFolder();
 
     var scanState = {
       newRows: [],
@@ -658,9 +656,7 @@ function diagnoseInventoryCoverage() {
     );
 
   var rootFolder =
-    DriveApp.getFolderById(
-      SB_CONFIG.ROOT_FOLDER_ID
-    );
+    DriveApp.getRootFolder();
 
   var counts = {
     totalImages: 0,
