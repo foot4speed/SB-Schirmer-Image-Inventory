@@ -131,6 +131,100 @@ function recoverInsufficientQuotaErrors() {
   return recoveredCount;
 }
 
+function diagnoseAnalysisErrors() {
+  var sheet = getInventorySheet_();
+  var headerMap = getPhase1HeaderMap_(sheet);
+
+  validateAnalysisHeaders_(headerMap);
+
+  var lastRow = sheet.getLastRow();
+
+  var counts = {
+    totalRows: 0,
+    complete: 0,
+    reviewRequired: 0,
+    error: 0,
+    skipped: 0,
+    pendingAnalysis: 0,
+    analyzing: 0,
+    other: 0
+  };
+
+  var errorGroups = {};
+
+  for (var sheetRow = 2; sheetRow <= lastRow; sheetRow++) {
+    counts.totalRows++;
+
+    var status = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Analysis Status"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (status === "Complete") {
+      counts.complete++;
+    } else if (status === "Review Required") {
+      counts.reviewRequired++;
+    } else if (status === "Error") {
+      counts.error++;
+
+      var notes = String(
+        sheet
+          .getRange(
+            sheetRow,
+            headerMap["Notes"] + 1
+          )
+          .getValue()
+      ).trim();
+
+      var group = notes || "(blank error notes)";
+
+      if (group.length > 120) {
+        group = group.substring(0, 120);
+      }
+
+      errorGroups[group] =
+        (errorGroups[group] || 0) + 1;
+    } else if (status === "Skipped") {
+      counts.skipped++;
+    } else if (status === "Pending Analysis") {
+      counts.pendingAnalysis++;
+    } else if (status === "Analyzing") {
+      counts.analyzing++;
+    } else {
+      counts.other++;
+    }
+  }
+
+  console.log("Total inventory rows: " + counts.totalRows);
+  console.log("Complete: " + counts.complete);
+  console.log("Review Required: " + counts.reviewRequired);
+  console.log("Error: " + counts.error);
+  console.log("Skipped: " + counts.skipped);
+  console.log("Pending Analysis: " + counts.pendingAnalysis);
+  console.log("Analyzing: " + counts.analyzing);
+  console.log("Other: " + counts.other);
+
+  for (var key in errorGroups) {
+    if (errorGroups.hasOwnProperty(key)) {
+      console.log(
+        "ERROR GROUP (" +
+        errorGroups[key] +
+        "): " +
+        key
+      );
+    }
+  }
+
+  return {
+    counts: counts,
+    errorGroups: errorGroups
+  };
+}
+
 function analyzePendingImages() {
   return analyzePendingImagesWithOptions_(
     SB_CONFIG.ANALYSIS_BATCH_SIZE,
