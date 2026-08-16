@@ -50,6 +50,87 @@ function recoverStaleAnalyzingRows() {
   return recoverStaleAnalyzingRows_();
 }
 
+function recoverInsufficientQuotaErrors() {
+  var sheet = getInventorySheet_();
+  var headerMap = getPhase1HeaderMap_(sheet);
+
+  validateAnalysisHeaders_(headerMap);
+
+  var lastRow = sheet.getLastRow();
+  var recoveredCount = 0;
+
+  for (var sheetRow = 2; sheetRow <= lastRow; sheetRow++) {
+    var status = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Analysis Status"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (status !== "Error") {
+      continue;
+    }
+
+    var notes = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Notes"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (notes.indexOf("insufficient_quota") === -1) {
+      continue;
+    }
+
+    setCellByHeader_(
+      sheet,
+      sheetRow,
+      headerMap,
+      "Analysis Status",
+      "Pending Analysis"
+    );
+
+    setCellByHeader_(
+      sheet,
+      sheetRow,
+      headerMap,
+      "Confidence",
+      ""
+    );
+
+    setCellByHeader_(
+      sheet,
+      sheetRow,
+      headerMap,
+      "Notes",
+      ""
+    );
+
+    setCellByHeader_(
+      sheet,
+      sheetRow,
+      headerMap,
+      "Date Analyzed",
+      ""
+    );
+
+    recoveredCount++;
+  }
+
+  SpreadsheetApp.flush();
+
+  console.log(
+    "Insufficient quota errors recovered: " +
+    recoveredCount
+  );
+
+  return recoveredCount;
+}
+
 function analyzePendingImages() {
   return analyzePendingImagesWithOptions_(
     SB_CONFIG.ANALYSIS_BATCH_SIZE,
