@@ -131,6 +131,64 @@ function recoverInsufficientQuotaErrors() {
   return recoveredCount;
 }
 
+function reclassifyReviewRequiredRows() {
+  var sheet = getInventorySheet_();
+  var headerMap = getPhase1HeaderMap_(sheet);
+
+  validateAnalysisHeaders_(headerMap);
+
+  var lastRow = sheet.getLastRow();
+  var reclassifiedCount = 0;
+
+  for (var sheetRow = 2; sheetRow <= lastRow; sheetRow++) {
+    var status = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Analysis Status"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (status !== "Review Required") {
+      continue;
+    }
+
+    var confidence = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Confidence"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (confidence === "Low") {
+      continue;
+    }
+
+    setCellByHeader_(
+      sheet,
+      sheetRow,
+      headerMap,
+      "Analysis Status",
+      "Complete"
+    );
+
+    reclassifiedCount++;
+  }
+
+  SpreadsheetApp.flush();
+
+  console.log(
+    "Review Required rows reclassified to Complete: " +
+    reclassifiedCount
+  );
+
+  return reclassifiedCount;
+}
+
+
 function diagnoseAnalysisErrors() {
   var sheet = getInventorySheet_();
   var headerMap = getPhase1HeaderMap_(sheet);
