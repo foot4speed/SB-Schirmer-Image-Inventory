@@ -79,7 +79,7 @@ function testInsufficientQuotaSafeStop() {
         .getValue()
     ).trim();
 
-    if (status === "Pending Analysis") {
+    if (status === "Complete") {
       testRow = sheetRow;
       break;
     }
@@ -87,27 +87,123 @@ function testInsufficientQuotaSafeStop() {
 
   if (!testRow) {
     throw new Error(
-      "No Pending Analysis row is available for the quota-stop test."
+      "No Complete row is available for the quota-stop test."
     );
   }
+
+  var originalStatus = sheet
+    .getRange(
+      testRow,
+      headerMap["Analysis Status"] + 1
+    )
+    .getValue();
+
+  var originalConfidence = sheet
+    .getRange(
+      testRow,
+      headerMap["Confidence"] + 1
+    )
+    .getValue();
+
+  var originalNotes = sheet
+    .getRange(
+      testRow,
+      headerMap["Notes"] + 1
+    )
+    .getValue();
+
+  var originalDateAnalyzed = sheet
+    .getRange(
+      testRow,
+      headerMap["Date Analyzed"] + 1
+    )
+    .getValue();
 
   var originalAnalyzeInventoryRow =
     analyzeInventoryRow_;
 
   try {
+    setCellByHeader_(
+      sheet,
+      testRow,
+      headerMap,
+      "Analysis Status",
+      "Pending Analysis"
+    );
+
     analyzeInventoryRow_ = function() {
       throw new Error(
         'OpenAI API returned HTTP 429: {"error":{"type":"insufficient_quota"}}'
       );
     };
 
-    analyzeInventoryRowSafely_(
-      sheet,
-      testRow,
-      headerMap
-    );
+    try {
+      analyzeInventoryRowSafely_(
+        sheet,
+        testRow,
+        headerMap
+      );
+    } catch (error) {
+      var resultingStatus = String(
+        sheet
+          .getRange(
+            testRow,
+            headerMap["Analysis Status"] + 1
+          )
+          .getValue()
+      ).trim();
+
+      console.log(
+        "Quota safe-stop test row status: " +
+        resultingStatus
+      );
+
+      if (resultingStatus !== "Pending Analysis") {
+        throw new Error(
+          "Quota safe-stop test failed. Expected Pending Analysis."
+        );
+      }
+
+      console.log(
+        "Quota safe-stop test passed."
+      );
+    }
   } finally {
     analyzeInventoryRow_ =
       originalAnalyzeInventoryRow;
+
+    setCellByHeader_(
+      sheet,
+      testRow,
+      headerMap,
+      "Analysis Status",
+      originalStatus
+    );
+
+    setCellByHeader_(
+      sheet,
+      testRow,
+      headerMap,
+      "Confidence",
+      originalConfidence
+    );
+
+    setCellByHeader_(
+      sheet,
+      testRow,
+      headerMap,
+      "Notes",
+      originalNotes
+    );
+
+    setCellByHeader_(
+      sheet,
+      testRow,
+      headerMap,
+      "Date Analyzed",
+      originalDateAnalyzed
+    );
+
+    SpreadsheetApp.flush();
   }
 }
