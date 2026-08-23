@@ -619,6 +619,59 @@ function analyzeInventoryRowSafely_(
       headerMap
     );
   } catch (error) {
+    var errorMessage = String(
+      error && error.message
+        ? error.message
+        : error
+    );
+
+    if (
+      errorMessage.indexOf(
+        "insufficient_quota"
+      ) !== -1
+    ) {
+      setCellByHeader_(
+        sheet,
+        sheetRow,
+        headerMap,
+        "Analysis Status",
+        "Pending Analysis"
+      );
+
+      setCellByHeader_(
+        sheet,
+        sheetRow,
+        headerMap,
+        "Confidence",
+        ""
+      );
+
+      setCellByHeader_(
+        sheet,
+        sheetRow,
+        headerMap,
+        "Notes",
+        ""
+      );
+
+      setCellByHeader_(
+        sheet,
+        sheetRow,
+        headerMap,
+        "Date Analyzed",
+        ""
+      );
+
+      SpreadsheetApp.flush();
+
+      deleteAnalysisTriggers();
+
+      console.error(
+        "OpenAI quota exhausted. Analysis paused safely."
+      );
+
+      throw error;
+    }
     console.error(
       "Analysis failed for row " +
       sheetRow +
