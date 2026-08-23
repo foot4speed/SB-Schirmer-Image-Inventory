@@ -225,6 +225,150 @@ function diagnoseAnalysisErrors() {
   };
 }
 
+function diagnoseReviewRequiredReasons() {
+  var sheet = getInventorySheet_();
+  var headerMap = getPhase1HeaderMap_(sheet);
+
+  validateAnalysisHeaders_(headerMap);
+
+  var lastRow = sheet.getLastRow();
+
+  var counts = {
+    totalReviewRequired: 0,
+    lowConfidenceOnly: 0,
+    unknownRecipeOnly: 0,
+    both: 0
+  };
+
+  var qualityCounts = {
+    Excellent: 0,
+    Good: 0,
+    Usable: 0,
+    Poor: 0,
+    Other: 0
+  };
+
+  for (var sheetRow = 2; sheetRow <= lastRow; sheetRow++) {
+    var status = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Analysis Status"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (status !== "Review Required") {
+      continue;
+    }
+
+    counts.totalReviewRequired++;
+
+    var confidence = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Confidence"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    var recipe = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Recipe"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    var quality = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Quality"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    var isLowConfidence =
+      confidence === "Low";
+
+    var isUnknownRecipe =
+      recipe === "Unknown";
+
+    if (
+      isLowConfidence &&
+      isUnknownRecipe
+    ) {
+      counts.both++;
+    } else if (isLowConfidence) {
+      counts.lowConfidenceOnly++;
+    } else if (isUnknownRecipe) {
+      counts.unknownRecipeOnly++;
+    }
+
+    if (
+      qualityCounts[quality] !==
+      undefined
+    ) {
+      qualityCounts[quality]++;
+    } else {
+      qualityCounts.Other++;
+    }
+  }
+
+  console.log(
+    "Review Required total: " +
+    counts.totalReviewRequired
+  );
+
+  console.log(
+    "Low confidence only: " +
+    counts.lowConfidenceOnly
+  );
+
+  console.log(
+    "Unknown recipe only: " +
+    counts.unknownRecipeOnly
+  );
+
+  console.log(
+    "Both Low confidence and Unknown recipe: " +
+    counts.both
+  );
+
+  console.log(
+    "Review Required quality - Excellent: " +
+    qualityCounts.Excellent
+  );
+
+  console.log(
+    "Review Required quality - Good: " +
+    qualityCounts.Good
+  );
+
+  console.log(
+    "Review Required quality - Usable: " +
+    qualityCounts.Usable
+  );
+
+  console.log(
+    "Review Required quality - Poor: " +
+    qualityCounts.Poor
+  );
+
+  console.log(
+    "Review Required quality - Other: " +
+    qualityCounts.Other
+  );
+
+  return {
+    counts: counts,
+    qualityCounts: qualityCounts
+  };
+}
+
 function analyzePendingImages() {
   return analyzePendingImagesWithOptions_(
     SB_CONFIG.ANALYSIS_BATCH_SIZE,
