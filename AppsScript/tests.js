@@ -59,3 +59,55 @@ function runLimitedInventoryTest_(imageLimit) {
     analyzed: analyzedCount
   };
 }
+
+function testInsufficientQuotaSafeStop() {
+  var sheet = getInventorySheet_();
+  var headerMap = getPhase1HeaderMap_(sheet);
+
+  validateAnalysisHeaders_(headerMap);
+
+  var lastRow = sheet.getLastRow();
+  var testRow = null;
+
+  for (var sheetRow = 2; sheetRow <= lastRow; sheetRow++) {
+    var status = String(
+      sheet
+        .getRange(
+          sheetRow,
+          headerMap["Analysis Status"] + 1
+        )
+        .getValue()
+    ).trim();
+
+    if (status === "Pending Analysis") {
+      testRow = sheetRow;
+      break;
+    }
+  }
+
+  if (!testRow) {
+    throw new Error(
+      "No Pending Analysis row is available for the quota-stop test."
+    );
+  }
+
+  var originalAnalyzeInventoryRow =
+    analyzeInventoryRow_;
+
+  try {
+    analyzeInventoryRow_ = function() {
+      throw new Error(
+        'OpenAI API returned HTTP 429: {"error":{"type":"insufficient_quota"}}'
+      );
+    };
+
+    analyzeInventoryRowSafely_(
+      sheet,
+      testRow,
+      headerMap
+    );
+  } finally {
+    analyzeInventoryRow_ =
+      originalAnalyzeInventoryRow;
+  }
+}
