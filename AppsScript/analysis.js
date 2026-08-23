@@ -714,10 +714,9 @@ function analyzeInventoryRow_(
   );
 
   var finalStatus =
-    analysis.confidence === "Low" ||
-    analysis.recipe === "Unknown"
-      ? "Review Required"
-      : "Complete";
+  analysis.confidence === "Low"
+    ? "Review Required"
+    : "Complete";
 
   setCellByHeader_(
     sheet,
